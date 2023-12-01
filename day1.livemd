@@ -14,4 +14,55 @@ input = Kino.Input.textarea("Input")
 
 ```elixir
 text = Kino.Input.read(input)
+
+text
+|> String.trim()
+|> String.split()
+|> Enum.map(fn ln ->
+  digits =
+    ln
+    |> String.graphemes()
+    |> Enum.flat_map(fn g ->
+      case Integer.parse(g) do
+        {int, _rest} -> [int]
+        :error -> []
+      end
+    end)
+
+  10 * Enum.at(digits, 0) + Enum.at(digits, -1)
+end)
+|> Enum.reduce(&(&1 + &2))
+```
+
+## Part 2
+
+```elixir
+text = Kino.Input.read(input)
+
+text
+|> String.trim()
+|> String.split()
+|> Enum.map(fn ln ->
+  digits =
+    ln
+    |> String.replace("one", "one1one")
+    |> String.replace("two", "two2two")
+    |> String.replace("three", "three3three")
+    |> String.replace("four", "four4four")
+    |> String.replace("five", "five5five")
+    |> String.replace("six", "6six")
+    |> String.replace("seven", "7seven")
+    |> String.replace("eight", "eight8eight")
+    |> String.replace("nine", "nine9nine")
+    |> String.graphemes()
+    |> Enum.flat_map(fn g ->
+      case Integer.parse(g) do
+        {int, _rest} -> [int]
+        :error -> []
+      end
+    end)
+
+  10 * Enum.at(digits, 0) + Enum.at(digits, -1)
+end)
+|> Enum.reduce(&(&1 + &2))
 ```
