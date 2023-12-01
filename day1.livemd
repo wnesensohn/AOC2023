@@ -1,7 +1,17 @@
 # Untitled notebook
 
-## Section
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Part1
 
 ```elixir
+input = Kino.Input.textarea("Input")
+```
 
+```elixir
+text = Kino.Input.read(input)
 ```
