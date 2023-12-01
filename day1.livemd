@@ -44,21 +44,43 @@ text
 |> String.split()
 |> Enum.map(fn ln ->
   digits =
-    ln
-    |> String.replace("one", "one1one")
-    |> String.replace("two", "two2")
-    |> String.replace("three", "3")
-    |> String.replace("four", "4")
-    |> String.replace("five", "5")
-    |> String.replace("six", "6")
-    |> String.replace("seven", "7")
-    |> String.replace("eight", "8")
-    |> String.replace("nine", "9")
-    |> String.graphemes()
-    |> Enum.flat_map(fn g ->
-      case Integer.parse(g) do
-        {int, _rest} -> [int]
-        :error -> []
+    0..String.length(ln)
+    |> Enum.flat_map(fn idx ->
+      v = String.slice(ln, idx, String.length(ln))
+
+      cond do
+        String.starts_with?(v, "nine") ->
+          [9]
+
+        String.starts_with?(v, "eight") ->
+          [8]
+
+        String.starts_with?(v, "seven") ->
+          [7]
+
+        String.starts_with?(v, "six") ->
+          [6]
+
+        String.starts_with?(v, "five") ->
+          [5]
+
+        String.starts_with?(v, "four") ->
+          [4]
+
+        String.starts_with?(v, "three") ->
+          [3]
+
+        String.starts_with?(v, "two") ->
+          [2]
+
+        String.starts_with?(v, "one") ->
+          [1]
+
+        true ->
+          case Integer.parse(String.slice(ln, idx, 1)) do
+            :error -> []
+            {val, _} -> [val]
+          end
       end
     end)
 
