@@ -1,4 +1,4 @@
-# Untitled notebook
+# AOC Day 1
 
 ```elixir
 Mix.install([
