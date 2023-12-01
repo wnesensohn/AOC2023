@@ -46,14 +46,14 @@ text
   digits =
     ln
     |> String.replace("one", "one1one")
-    |> String.replace("two", "two2two")
-    |> String.replace("three", "three3three")
-    |> String.replace("four", "four4four")
-    |> String.replace("five", "five5five")
-    |> String.replace("six", "6six")
-    |> String.replace("seven", "7seven")
-    |> String.replace("eight", "eight8eight")
-    |> String.replace("nine", "nine9nine")
+    |> String.replace("two", "two2")
+    |> String.replace("three", "3")
+    |> String.replace("four", "4")
+    |> String.replace("five", "5")
+    |> String.replace("six", "6")
+    |> String.replace("seven", "7")
+    |> String.replace("eight", "8")
+    |> String.replace("nine", "9")
     |> String.graphemes()
     |> Enum.flat_map(fn g ->
       case Integer.parse(g) do
