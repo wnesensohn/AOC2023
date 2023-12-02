@@ -56,4 +56,40 @@ end)
 
 ```elixir
 text = Kino.Input.read(input)
+
+text
+|> String.trim()
+|> String.split("\n")
+|> Enum.map(fn ln ->
+  [game, moves] =
+    ln
+    |> String.split(": ")
+
+  {game_number, _} = Integer.parse(String.trim_leading(game, "Game "))
+
+  %{"red" => red, "green" => green, "blue" => blue} =
+    moves
+    |> String.split("; ")
+    |> Enum.flat_map(fn move ->
+      move
+      |> String.split(", ")
+      |> Enum.map(fn pick ->
+        [amount_str, color] = String.split(pick, " ")
+        {amount, _} = Integer.parse(amount_str)
+        {color, amount}
+      end)
+    end)
+    |> Enum.reduce(%{"red" => 0, "green" => 0, "blue" => 0}, fn pick, acc ->
+      {color, amount} = pick
+
+      if(amount > acc[color]) do
+        Map.put(acc, color, amount)
+      else
+        acc
+      end
+    end)
+
+  red * green * blue
+end)
+|> Enum.reduce(&(&1 + &2))
 ```
