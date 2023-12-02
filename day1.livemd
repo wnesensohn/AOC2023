@@ -6,7 +6,7 @@ Mix.install([
 ])
 ```
 
-## Part1
+## Part 1
 
 ```elixir
 input = Kino.Input.textarea("Input")
@@ -39,6 +39,8 @@ end)
 ```elixir
 text = Kino.Input.read(input)
 
+digits = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+
 text
 |> String.trim()
 |> String.split()
@@ -48,33 +50,15 @@ text
     |> Enum.flat_map(fn idx ->
       v = String.slice(ln, idx, String.length(ln))
 
+      {_, from_digit} =
+        digits
+        |> Enum.with_index()
+        |> Enum.filter(fn {digit, _} -> String.starts_with?(v, digit) end)
+        |> Enum.map_reduce(0, fn {_, index}, acc -> {index, 1 + index + acc} end)
+
       cond do
-        String.starts_with?(v, "nine") ->
-          [9]
-
-        String.starts_with?(v, "eight") ->
-          [8]
-
-        String.starts_with?(v, "seven") ->
-          [7]
-
-        String.starts_with?(v, "six") ->
-          [6]
-
-        String.starts_with?(v, "five") ->
-          [5]
-
-        String.starts_with?(v, "four") ->
-          [4]
-
-        String.starts_with?(v, "three") ->
-          [3]
-
-        String.starts_with?(v, "two") ->
-          [2]
-
-        String.starts_with?(v, "one") ->
-          [1]
+        from_digit > 0 ->
+          [from_digit]
 
         true ->
           case Integer.parse(String.slice(ln, idx, 1)) do
