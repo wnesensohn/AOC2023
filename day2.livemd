@@ -1,0 +1,59 @@
+# AOC Day 2
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Part1
+
+```elixir
+input = Kino.Input.textarea("Input")
+```
+
+```elixir
+text = Kino.Input.read(input)
+
+game_bag = %{"red" => 12, "green" => 13, "blue" => 14}
+
+text
+|> String.trim()
+|> String.split("\n")
+|> Enum.map(fn ln ->
+  [game, moves] =
+    ln
+    |> String.split(": ")
+
+  {game_number, _} = Integer.parse(String.trim_leading(game, "Game "))
+
+  only_valid_moves =
+    moves
+    |> String.split("; ")
+    |> Enum.flat_map(fn move ->
+      move
+      |> String.split(", ")
+      |> Enum.map(fn pick ->
+        [amount_str, color] = String.split(pick, " ")
+        {amount, _} = Integer.parse(amount_str)
+        amount_in_bag = game_bag[color]
+        amount <= amount_in_bag
+      end)
+    end)
+    |> Enum.reduce(true, fn acc, valid -> acc and valid end)
+
+  %{game: game_number, valid: only_valid_moves}
+end)
+|> Enum.reduce(0, fn game, acc ->
+  case game do
+    %{game: number, valid: true} -> acc + number
+    _ -> acc
+  end
+end)
+```
+
+## Part 2
+
+```elixir
+text = Kino.Input.read(input)
+```
