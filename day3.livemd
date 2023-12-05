@@ -15,8 +15,6 @@ input = Kino.Input.textarea("Input")
 ```elixir
 text = Kino.Input.read(input)
 
-str = "123..12..23"
-
 map_fun = fn g ->
   cond do
     g == "." -> "."
@@ -92,4 +90,78 @@ num
 
 ```elixir
 text = Kino.Input.read(input)
+
+map_fun = fn g ->
+  cond do
+    g == "." -> "."
+    g == "*" -> "*"
+    Integer.parse(g) == :error -> "."
+    true -> g
+  end
+end
+
+chunk_fun = fn g ->
+  cond do
+    g == "." -> 0
+    Integer.parse(g) == :error -> 1
+    true -> 2
+  end
+end
+
+parsed =
+  text
+  |> String.split()
+  |> Enum.with_index()
+  |> Enum.map(fn {v, idx} ->
+    st =
+      v
+      |> String.graphemes()
+      |> Enum.map(map_fun)
+      |> Enum.chunk_by(chunk_fun)
+      |> Enum.map(&Enum.join(&1))
+      |> Enum.map(fn chunk ->
+        if Regex.match?(~r/^\.+$/, chunk) do
+          {:skip, 0, String.length(chunk)}
+        else
+          case Integer.parse(chunk) do
+            {number, _} -> {:number, number, String.length(chunk)}
+            :error -> {:symbol, 0, String.length(chunk)}
+          end
+        end
+      end)
+      |> Enum.map_reduce(0, fn chunk, acc ->
+        {action, data, length} = chunk
+        position = acc
+        {{action, idx, position, length, data}, length + position}
+      end)
+
+    {idx, st}
+  end)
+  |> Enum.flat_map(fn {_row, {rest, _}} ->
+    rest
+  end)
+
+has_number_neighbours = fn all, row, col ->
+  nums =
+    all
+    |> Enum.filter(&match?({:number, _, _, _, _}, &1))
+    |> Enum.filter(fn {_, number_row, number_col, number_length, _} ->
+      abs(row - number_row) <= 1 and
+        col - number_col <= number_length and
+        col - number_col >= -1
+    end)
+    |> Enum.map(fn {:number, _, _, _, num} -> num end)
+
+  if Enum.count(nums) == 2 do
+    Enum.reduce(nums, 1, &(&1 * &2))
+  else
+    0
+  end
+end
+
+parsed
+|> Enum.filter(&match?({:symbol, _, _, _, _}, &1))
+|> Enum.reduce(0, fn {_, sym_row, sym_col, _, _}, acc ->
+  acc + has_number_neighbours.(parsed, sym_row, sym_col)
+end)
 ```
