@@ -1,0 +1,95 @@
+# AOC Day 3
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Part 1
+
+```elixir
+input = Kino.Input.textarea("Input")
+```
+
+```elixir
+text = Kino.Input.read(input)
+
+str = "123..12..23"
+
+map_fun = fn g ->
+  cond do
+    g == "." -> "."
+    Integer.parse(g) == :error -> "*"
+    true -> g
+  end
+end
+
+chunk_fun = fn g ->
+  cond do
+    g == "." -> 0
+    Integer.parse(g) == :error -> 1
+    true -> 2
+  end
+end
+
+parsed =
+  text
+  |> String.split()
+  |> Enum.with_index()
+  |> Enum.map(fn {v, idx} ->
+    st =
+      v
+      |> String.graphemes()
+      |> Enum.map(map_fun)
+      |> Enum.chunk_by(chunk_fun)
+      |> Enum.map(&Enum.join(&1))
+      |> Enum.map(fn chunk ->
+        if Regex.match?(~r/^\.+$/, chunk) do
+          {:skip, 0, String.length(chunk)}
+        else
+          case Integer.parse(chunk) do
+            {number, _} -> {:number, number, String.length(chunk)}
+            :error -> {:symbol, 0, String.length(chunk)}
+          end
+        end
+      end)
+      |> Enum.map_reduce(0, fn chunk, acc ->
+        {action, data, length} = chunk
+        position = acc
+        {{action, idx, position, length, data}, length + position}
+      end)
+
+    {idx, st}
+  end)
+  |> Enum.flat_map(fn {_row, {rest, _}} ->
+    rest
+  end)
+
+has_symbol_neighbour = fn all, row, col, length ->
+  all
+  |> Enum.filter(&match?({:symbol, _, _, _, _}, &1))
+  |> Enum.filter(fn {_, symbol_row, symbol_col, _, _} ->
+    abs(row - symbol_row) <= 1 and
+      symbol_col - col <= length and
+      symbol_col - col >= -1
+  end)
+  |> Enum.any?()
+end
+
+{_, num} =
+  parsed
+  |> Enum.filter(&match?({:number, _, _, _, _}, &1))
+  |> Enum.filter(fn {_, num_row, num_col, num_len, _} ->
+    has_symbol_neighbour.(parsed, num_row, num_col, num_len)
+  end)
+  |> Enum.map_reduce(0, fn {_, _, _, _, num}, acc -> {num + acc, num + acc} end)
+
+num
+```
+
+## Part 2
+
+```elixir
+text = Kino.Input.read(input)
+```
