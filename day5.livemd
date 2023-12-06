@@ -96,21 +96,43 @@ map_fun = fn mappings, input ->
   end)
 end
 
+map_fun_reverse = fn mappings, input ->
+  mappings
+  |> Enum.reduce_while(input, fn [deststart, srcstart, length], acc ->
+    if input >= deststart and input < deststart + length do
+      {:halt, input - deststart + srcstart}
+    else
+      {:cont, acc}
+    end
+  end)
+end
+
+test = [[20, 50, 10]]
+
+map_fun_reverse(
+  test,
+  25
+  |> IO.inspect()
+)
+
 # find the map-boundaries, if we had two consecutive maps
 # 50..60 -> 20..30
 # 25..35 -> 10..20 / 10..20 -> 70..80
 # the min result is 10, with 55 as input
 # how do we find it efficiently?
 #
-# the first map splits the input at 49-50 and 60-61, resulting in three ranges
-# the second set of maps split the input at 9-10, 20-21, 24-25, 35-36, resulting in 5 ranges
+# the first map splits the input at 0-49, 50-60, 61-inf
+# the second set of maps split the input at 0-9, 10-20, 21-24, 25-35, 36-inf, resulting in 5 ranges
 #
 # to find the lowest number, we need to combine these ranges, but how?
 #
 # we combine it like this:
-# 1) 49 / 60 (only split-points, always split at ceil)
-# 2) 25->55, 35->35, 10->10, 20->50, 49, 60
+# 1) 0-49, 50-60, 61-inf
+# 2) split at 54, 55, 35, 36, 9, 10, 49, 50
 # then evaluate at each splitpoint (low and high), we should then get the min/max result
+# so from the back, take each input range (splits at low/high), translate each number
+# using the reverse of the map, and join it with the splits of the input range of the next
+# map, then proceed
 
 seeds
 |> Enum.map(fn seed ->
