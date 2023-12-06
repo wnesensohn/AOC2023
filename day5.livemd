@@ -99,7 +99,7 @@ end
 # find the map-boundaries, if we had two consecutive maps
 # 50..60 -> 20..30
 # 25..35 -> 10..20 / 10..20 -> 70..80
-# the min result is 25, with 55 as input
+# the min result is 10, with 55 as input
 # how do we find it efficiently?
 #
 # the first map splits the input at 49-50 and 60-61, resulting in three ranges
@@ -107,10 +107,10 @@ end
 #
 # to find the lowest number, we need to combine these ranges, but how?
 #
-# working backwards, 9-10, 20-21, 24-25, 35-36 are the maps for outputs which are split
-# in three ranges, 19-20, 30-31
-# so we combine these to get 9-10, 19-20, 20-21, 24-25, 30-31, 35-36, and then we only evaluate
-# at the edges of the ranges because in-between nothing interesting is happening
+# we combine it like this:
+# 1) 49 / 60 (only split-points, always split at ceil)
+# 2) 25->55, 35->35, 10->10, 20->50, 49, 60
+# then evaluate at each splitpoint (low and high), we should then get the min/max result
 
 seeds
 |> Enum.map(fn seed ->
