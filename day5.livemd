@@ -1,0 +1,111 @@
+# AOC Day 5
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Part 1
+
+```elixir
+input = Kino.Input.textarea("Input")
+```
+
+```elixir
+text = Kino.Input.read(input)
+
+seeds =
+  text
+  |> String.trim()
+  |> String.split("\n\n")
+  |> Enum.at(0)
+  |> String.split(" ")
+  |> Enum.drop(1)
+  |> Enum.map(&(Integer.parse(&1) |> elem(0)))
+
+maps =
+  text
+  |> String.trim()
+  |> String.split("\n\n")
+  |> Enum.drop(1)
+  |> Enum.map(
+    &(String.split(&1, "\n")
+      |> Enum.drop(1)
+      |> Enum.map(fn l ->
+        String.split(l, " ") |> Enum.map(fn el -> Integer.parse(el) |> elem(0) end)
+      end))
+  )
+
+map_fun = fn mappings, input ->
+  mappings
+  |> Enum.reduce_while(input, fn [deststart, srcstart, length], acc ->
+    if input >= srcstart and input < srcstart + length do
+      {:halt, input - srcstart + deststart}
+    else
+      {:cont, acc}
+    end
+  end)
+end
+
+seeds
+|> Enum.map(fn seed ->
+  maps
+  |> Enum.reduce(seed, fn mapping, acc ->
+    map_fun.(mapping, acc)
+  end)
+end)
+|> Enum.min()
+```
+
+## Part 2
+
+```elixir
+text = Kino.Input.read(input)
+
+seeds =
+  text
+  |> String.trim()
+  |> String.split("\n\n")
+  |> Enum.at(0)
+  |> String.split(" ")
+  |> Enum.drop(1)
+  |> Enum.map(&(Integer.parse(&1) |> elem(0)))
+
+maps =
+  text
+  |> String.trim()
+  |> String.split("\n\n")
+  |> Enum.drop(1)
+  |> Enum.map(
+    &(String.split(&1, "\n")
+      |> Enum.drop(1)
+      |> Enum.map(fn l ->
+        String.split(l, " ") |> Enum.map(fn el -> Integer.parse(el) |> elem(0) end)
+      end))
+  )
+
+map_fun = fn mappings, input ->
+  mappings
+  |> Enum.reduce_while(input, fn [deststart, srcstart, length], acc ->
+    if input >= srcstart and input < srcstart + length do
+      {:halt, input - srcstart + deststart}
+    else
+      {:cont, acc}
+    end
+  end)
+end
+
+seeds
+|> Enum.chunk_every(2)
+|> Enum.flat_map(fn [start, length] ->
+  start..(start + length)
+end)
+|> Enum.map(fn seed ->
+  maps
+  |> Enum.reduce(seed, fn mapping, acc ->
+    map_fun.(mapping, acc)
+  end)
+end)
+|> Enum.min()
+```
