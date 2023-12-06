@@ -96,11 +96,23 @@ map_fun = fn mappings, input ->
   end)
 end
 
+# find the map-boundaries, if we had two consecutive maps
+# 50..60 -> 20..30
+# 25..35 -> 10..20 / 10..20 -> 70..80
+# the min result is 25, with 55 as input
+# how do we find it efficiently?
+#
+# the first map splits the input at 49-50 and 60-61, resulting in three ranges
+# the second set of maps split the input at 9-10, 20-21, 24-25, 35-36, resulting in 5 ranges
+#
+# to find the lowest number, we need to combine these ranges, but how?
+#
+# working backwards, 9-10, 20-21, 24-25, 35-36 are the maps for outputs which are split
+# in three ranges, 19-20, 30-31
+# so we combine these to get 9-10, 19-20, 20-21, 24-25, 30-31, 35-36, and then we only evaluate
+# at the edges of the ranges because in-between nothing interesting is happening
+
 seeds
-|> Enum.chunk_every(2)
-|> Enum.flat_map(fn [start, length] ->
-  start..(start + length)
-end)
 |> Enum.map(fn seed ->
   maps
   |> Enum.reduce(seed, fn mapping, acc ->
