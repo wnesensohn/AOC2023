@@ -64,20 +64,30 @@ wins =
     |> MapSet.size()
   end)
 
+win_map =
+  wins
+  |> Enum.with_index()
+  |> Enum.map(fn {_, idx} -> {idx, 1} end)
+  |> Map.new()
+
 wins
-|> Enum.reduce({0, []}, fn win, {cwin, ranges} ->
-  newRanges =
-    [win + 1 | ranges]
-    |> Enum.map(&(&1 - 1))
-    |> Enum.filter(&(&1 > 0))
+|> Enum.with_index()
+|> Enum.reduce(win_map, fn {val, idx}, acc ->
+  cur_win = Map.get(acc, idx)
 
-  newRanges =
-    0..Enum.count(ranges)
-    |> Enum.flat_map(fn _ -> newRanges end)
+  if val > 0 do
+    new_map =
+      (idx + 1)..(idx + val)
+      |> Enum.reduce(acc, fn idx, acc ->
+        acc
+        |> Map.update!(idx, fn map_val -> map_val + cur_win end)
+      end)
 
-  cond do
-    win > 0 -> {cwin + Enum.count(ranges), newRanges}
-    true -> {cwin, newRanges}
+    new_map
+  else
+    acc
   end
 end)
+|> Map.values()
+|> Enum.reduce(&(&1 + &2))
 ```
