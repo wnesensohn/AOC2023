@@ -1,0 +1,83 @@
+# AOC Day 4
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Part 1
+
+```elixir
+input = Kino.Input.textarea("Input")
+```
+
+```elixir
+text = Kino.Input.read(input)
+
+text
+|> String.split("\n")
+|> Enum.map(fn line -> String.split(line, ":") |> Enum.at(1) |> String.split("|") end)
+|> Enum.map(fn parts ->
+  size =
+    parts
+    |> Enum.map(fn part ->
+      String.split(part, " ", trim: true)
+      |> Enum.map(fn x ->
+        {num, _} = Integer.parse(x)
+        num
+      end)
+      |> MapSet.new()
+    end)
+    |> Enum.reduce(fn part, acc -> MapSet.intersection(part, acc) end)
+    |> MapSet.size()
+
+  cond do
+    size == 0 -> 0
+    true -> 2 ** (size - 1)
+  end
+end)
+|> Enum.reduce(&(&1 + &2))
+```
+
+## Part 2
+
+```elixir
+text = Kino.Input.read(input)
+
+wins =
+  text
+  |> String.trim()
+  |> String.split("\n")
+  |> Enum.map(fn line -> String.split(line, ":") |> Enum.at(1) |> String.split("|") end)
+  |> Enum.map(fn parts ->
+    parts
+    |> Enum.map(fn part ->
+      String.split(part, " ", trim: true)
+      |> Enum.map(fn x ->
+        {num, _} = Integer.parse(x)
+        num
+      end)
+      |> MapSet.new()
+    end)
+    |> Enum.reduce(fn part, acc -> MapSet.intersection(part, acc) end)
+    |> MapSet.size()
+  end)
+
+wins
+|> Enum.reduce({0, []}, fn win, {cwin, ranges} ->
+  newRanges =
+    [win + 1 | ranges]
+    |> Enum.map(&(&1 - 1))
+    |> Enum.filter(&(&1 > 0))
+
+  newRanges =
+    0..Enum.count(ranges)
+    |> Enum.flat_map(fn _ -> newRanges end)
+
+  cond do
+    win > 0 -> {cwin + Enum.count(ranges), newRanges}
+    true -> {cwin, newRanges}
+  end
+end)
+```
