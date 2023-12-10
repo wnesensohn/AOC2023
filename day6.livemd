@@ -1,0 +1,90 @@
+# AOC Day 6
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Part 1
+
+```elixir
+input = Kino.Input.textarea("Input")
+```
+
+```elixir
+text = Kino.Input.read(input)
+
+races =
+  text
+  |> String.trim()
+  |> String.split("\n")
+  |> Enum.map(fn line ->
+    String.split(line) |> Enum.drop(1) |> Enum.map(fn str -> Integer.parse(str) |> elem(0) end)
+  end)
+  |> Enum.zip()
+
+get_races = fn duration ->
+  0..duration
+  |> Enum.map(fn button_hold ->
+    # when holding the button for button_hold ms, distance
+    # is button_hold * (duration - button_hold)
+    button_hold * (duration - button_hold)
+  end)
+end
+
+races
+|> Enum.map(fn {racetime, goal} ->
+  get_races.(racetime)
+  |> Enum.filter(fn x -> x > goal end)
+  |> Enum.count()
+end)
+|> Enum.reduce(fn x, acc -> x * acc end)
+```
+
+## Part 2
+
+```elixir
+text = Kino.Input.read(input)
+
+races =
+  text
+  |> String.trim()
+  |> String.split("\n")
+  |> Enum.map(fn line ->
+    String.split(line, ":")
+    |> Enum.drop(1)
+    |> Enum.map(fn str -> str |> String.replace(" ", "") |> Integer.parse() |> elem(0) end)
+  end)
+  |> Enum.zip()
+
+get_races = fn duration ->
+  0..duration
+  |> Enum.map(fn button_hold ->
+    # when holding the button for button_hold ms, distance
+    # is button_hold * (duration - button_hold)
+    button_hold * duration - button_hold * button_hold
+  end)
+end
+
+races
+|> IO.inspect()
+
+# goal = bh * (time - bh)
+# solve for bh
+# goal = bh * time - bh^2
+# bh^2 + goal = bh * time
+# bh^2 - bh*time + goal = 0
+# p.. -time
+# q.. goal
+# -p/2 +- sqrt((p/2)^2 - q)
+
+get_winning_races = fn {racetime, goal} ->
+  p_half = racetime / 2
+  part = :math.sqrt(p_half * p_half - goal)
+  round(:math.floor(p_half + part - p_half + part))
+end
+
+get_winning_races.(races |> Enum.at(0))
+|> IO.inspect()
+```
