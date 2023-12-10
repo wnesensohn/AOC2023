@@ -96,24 +96,24 @@ map_fun = fn mappings, input ->
   end)
 end
 
-map_fun_reverse = fn mappings, input ->
-  mappings
-  |> Enum.reduce_while(input, fn [deststart, srcstart, length], acc ->
-    if input >= deststart and input < deststart + length do
-      {:halt, input - deststart + srcstart}
-    else
-      {:cont, acc}
-    end
+map_fun_reverse = fn mappings, inputs ->
+  inputs
+  |> Enum.map(fn input ->
+    mappings
+    |> Enum.reduce_while(input, fn [deststart, srcstart, length], acc ->
+      if input >= deststart and input < deststart + length do
+        {:halt, input - deststart + srcstart}
+      else
+        {:cont, acc}
+      end
+    end)
   end)
 end
 
-test = [[20, 50, 10]]
+maps
+|> Enum.reverse()
 
-map_fun_reverse(
-  test,
-  25
-  |> IO.inspect()
-)
+# |> IO.inspect
 
 # find the map-boundaries, if we had two consecutive maps
 # 50..60 -> 20..30
@@ -134,7 +134,42 @@ map_fun_reverse(
 # using the reverse of the map, and join it with the splits of the input range of the next
 # map, then proceed
 
-seeds
+test = [[10, 25, 10], [70, 10, 10]]
+
+get_idxs_from_map = fn map ->
+  map
+  |> Enum.flat_map(fn [deststart, srcstart, length] ->
+    [srcstart - 1, srcstart, srcstart + length, srcstart + length - 1]
+    |> Enum.filter(fn x -> x >= 0 end)
+  end)
+end
+
+translate_idxs_with_map = fn map, idxs ->
+  map
+  |> Enum.reduce(idxs, fn mapping, acc ->
+    from_tail = map_fun_reverse.(mapping, acc)
+    from_map = get_idxs_from_map.(mapping)
+    Enum.uniq(from_tail ++ from_map)
+  end)
+end
+
+start = get_idxs_from_map.(maps |> Enum.reverse() |> Enum.at(0))
+
+translate_idxs_with_map.(Enum.reverse(maps), start)
+|> Enum.map(fn x -> Integer.to_string(x) end)
+|> IO.inspect()
+
+is_in_seed = fn x ->
+  seeds
+  |> Enum.chunk_every(2)
+  |> Enum.filter(fn [start, length] ->
+    x >= start and x < start + length
+  end)
+  |> Enum.any?()
+end
+
+translate_idxs_with_map.(Enum.reverse(maps), start)
+|> Enum.filter(fn x -> is_in_seed.(x) end)
 |> Enum.map(fn seed ->
   maps
   |> Enum.reduce(seed, fn mapping, acc ->
