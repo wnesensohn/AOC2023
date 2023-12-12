@@ -1,0 +1,97 @@
+# AOC Day 7
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Part 1
+
+```elixir
+input = Kino.Input.textarea("Input")
+```
+
+```elixir
+text = Kino.Input.read(input) |> String.trim()
+
+defmodule CamelCards do
+  def getRating(hand) do
+    rating =
+      hand
+      |> sort()
+      |> Enum.flat_map(fn {_key, value} -> value end)
+      |> getRatingInternal()
+
+    highcard =
+      hand
+      |> Enum.reverse()
+      |> Enum.with_index()
+      |> Enum.map(fn {card, idx} -> getValueOfCard(card) * 15 ** (idx + 1) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
+
+    rating * 10_000_000_000 + highcard
+  end
+
+  defp getRatingInternal([x, x, x, x, x]) do
+    7
+  end
+
+  defp getRatingInternal([x, x, x, x, _]) do
+    6
+  end
+
+  defp getRatingInternal([x, x, x, y, y]) do
+    5
+  end
+
+  defp getRatingInternal([x, x, x, _, _]) do
+    4
+  end
+
+  defp getRatingInternal([x, x, y, y, _]) do
+    3
+  end
+
+  defp getRatingInternal([x, x, _, _, _]) do
+    2
+  end
+
+  defp getRatingInternal([_, _, _, _, _]) do
+    1
+  end
+
+  def sort(hand) do
+    hand
+    |> Enum.group_by(fn x -> x end)
+    |> Enum.sort_by(fn {key, value} -> Enum.count(value) * 15 + getValueOfCard(key) end, :desc)
+  end
+
+  def getValueOfCard(card) do
+    cardrating = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]
+
+    rating =
+      cardrating
+      |> Enum.reverse()
+      |> Enum.find_index(fn x -> x == card end)
+
+    rating + 1
+  end
+end
+
+text
+|> String.split()
+|> Enum.chunk_every(2)
+|> Enum.map(fn [hand, bid] ->
+  {hand |> String.split("", trim: true), Integer.parse(bid) |> elem(0)}
+end)
+|> Enum.sort_by(fn {hand, _bid} -> CamelCards.getRating(hand) end)
+|> Enum.with_index()
+|> Enum.reduce(0, fn {{_hand, bid}, rank}, acc -> acc + bid * (rank + 1) end)
+```
+
+## Part 2
+
+```elixir
+text = Kino.Input.read(input)
+```
