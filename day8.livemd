@@ -1,0 +1,49 @@
+# AOC Day 8
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Part 1
+
+```elixir
+input = Kino.Input.textarea("Input")
+```
+
+```elixir
+text = Kino.Input.read(input) |> String.trim()
+
+instructions =
+  text
+  |> String.split()
+  |> Enum.at(0)
+  |> String.split("", trim: true)
+  |> Enum.map(fn direction ->
+    case direction do
+      "L" -> 0
+      "R" -> 1
+    end
+  end)
+
+field =
+  text
+  |> String.split("\n", trim: true)
+  |> Enum.drop(1)
+  |> Enum.map(fn x -> x |> String.split([" ", "=", ",", "(", ")"], trim: true) end)
+  |> Map.new(fn [start, left, right] -> {start, [left, right]} end)
+
+Stream.cycle(instructions)
+|> Enum.reduce_while({0, "AAA"}, fn dir, {acc, cur} ->
+  if cur != "ZZZ", do: {:cont, {acc + 1, field[cur] |> Enum.at(dir)}}, else: {:halt, {acc, cur}}
+end)
+
+# field["AAA"] |> Enum.at(1)
+```
+
+## Part 2
+
+```elixir
+text = Kino.Input.read(input) |> String.trim()
+```
