@@ -93,5 +93,105 @@ end)
 ## Part 2
 
 ```elixir
-text = Kino.Input.read(input)
+text = Kino.Input.read(input) |> String.trim()
+
+defmodule CamelCardsPt2 do
+  def getRating(hand) do
+    rating =
+      getHandWithReplacement(hand)
+      |> sort()
+      |> Enum.flat_map(fn {_key, value} -> value end)
+      |> getRatingInternal()
+
+    highcard =
+      hand
+      |> Enum.reverse()
+      |> Enum.with_index()
+      |> Enum.map(fn {card, idx} -> getValueOfCard(card) * 15 ** (idx + 1) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
+
+    rating * 10_000_000_000 + highcard
+  end
+
+  def getHandWithReplacement(hand) do
+    without_joker =
+      hand
+      |> Enum.filter(fn x -> x != "J" end)
+      |> sort()
+      |> Enum.flat_map(fn {_key, value} -> value end)
+
+    jokers =
+      hand
+      |> Enum.filter(fn x -> x == "J" end)
+
+    first = Enum.find(without_joker, "J", fn _ -> true end)
+
+    replacements =
+      Range.new(1, Enum.count(jokers), 1)
+      |> Enum.map(fn _ -> first end)
+
+    (replacements ++ without_joker)
+    |> sort()
+    |> Enum.flat_map(fn {_key, value} -> value end)
+  end
+
+  defp getRatingInternal([x, x, x, x, x]) do
+    7
+  end
+
+  defp getRatingInternal([x, x, x, x, _]) do
+    6
+  end
+
+  defp getRatingInternal([x, x, x, y, y]) do
+    5
+  end
+
+  defp getRatingInternal([x, x, x, y, y]) do
+    5
+  end
+
+  defp getRatingInternal([x, x, x, _, _]) do
+    4
+  end
+
+  defp getRatingInternal([x, x, y, y, _]) do
+    3
+  end
+
+  defp getRatingInternal([x, x, _, _, _]) do
+    2
+  end
+
+  defp getRatingInternal([_, _, _, _, _]) do
+    1
+  end
+
+  def sort(hand) do
+    hand
+    |> Enum.group_by(fn x -> x end)
+    |> Enum.sort_by(fn {key, value} -> Enum.count(value) * 15 + getValueOfCard(key) end, :desc)
+  end
+
+  def getValueOfCard(card) do
+    cardrating = ["A", "K", "Q", "T", "9", "8", "7", "6", "5", "4", "3", "2", "J"]
+
+    rating =
+      cardrating
+      |> Enum.reverse()
+      |> Enum.find_index(fn x -> x == card end)
+
+    rating + 1
+  end
+end
+
+text
+|> String.split()
+|> Enum.chunk_every(2)
+|> Enum.map(fn [hand, bid] ->
+  {hand |> String.split("", trim: true), Integer.parse(bid) |> elem(0)}
+end)
+|> Enum.sort_by(fn {hand, _bid} -> CamelCardsPt2.getRating(hand) end)
+|> Enum.with_index()
+|> Enum.reduce(0, fn {{_hand, bid}, rank}, acc -> acc + bid * (rank + 1) end)
 ```
