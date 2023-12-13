@@ -38,12 +38,44 @@ Stream.cycle(instructions)
 |> Enum.reduce_while({0, "AAA"}, fn dir, {acc, cur} ->
   if cur != "ZZZ", do: {:cont, {acc + 1, field[cur] |> Enum.at(dir)}}, else: {:halt, {acc, cur}}
 end)
-
-# field["AAA"] |> Enum.at(1)
 ```
 
 ## Part 2
 
 ```elixir
 text = Kino.Input.read(input) |> String.trim()
+
+instructions =
+  text
+  |> String.split()
+  |> Enum.at(0)
+  |> String.split("", trim: true)
+  |> Enum.map(fn direction ->
+    case direction do
+      "L" -> 0
+      "R" -> 1
+    end
+  end)
+
+field =
+  text
+  |> String.split("\n", trim: true)
+  |> Enum.drop(1)
+  |> Enum.map(fn x -> x |> String.split([" ", "=", ",", "(", ")"], trim: true) end)
+  |> Map.new(fn [start, left, right] -> {start, [left, right]} end)
+
+starts = field |> Map.keys() |> Enum.filter(fn x -> String.ends_with?(x, "A") end)
+
+Stream.cycle(instructions)
+|> Enum.reduce_while({0, starts}, fn dir, {acc, curs} ->
+  fin = Enum.all?(curs, fn x -> String.ends_with?(x, "Z") end)
+
+  news =
+    curs
+    |> Enum.map(fn cur ->
+      field[cur] |> Enum.at(dir)
+    end)
+
+  if !fin, do: {:cont, {acc + 1, news}}, else: {:halt, {acc, curs}}
+end)
 ```
