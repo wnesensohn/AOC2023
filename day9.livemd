@@ -51,4 +51,35 @@ h =
 
 ```elixir
 text = Kino.Input.read(input) |> String.trim()
+
+histories =
+  text
+  |> String.split("\n")
+  |> Enum.map(fn x ->
+    x |> String.split() |> Enum.map(fn y -> y |> Integer.parse() |> elem(0) end)
+  end)
+
+diffs = fn enum -> Enum.zip_with([enum, Enum.drop(enum, 1)], fn [a, b] -> b - a end) end
+
+defmodule Oasis2 do
+  def diffs(enum) do
+    Enum.zip_with([enum, Enum.drop(enum, 1)], fn [a, b] -> b - a end)
+  end
+
+  def diffrec(enum) do
+    enum |> IO.inspect()
+
+    if Enum.sum(enum) == 0 do
+      0
+    else
+      (Enum.at(enum, 0) - diffrec(enum |> diffs))
+      |> IO.inspect()
+    end
+  end
+end
+
+h =
+  histories
+  |> Enum.map(fn x -> Oasis2.diffrec(x) end)
+  |> Enum.sum()
 ```
