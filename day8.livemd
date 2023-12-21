@@ -2,7 +2,8 @@
 
 ```elixir
 Mix.install([
-  {:kino, "~> 0.11.0"}
+  {:kino, "~> 0.11.0"},
+  {:math, "~> 0.7.0"}
 ])
 ```
 
@@ -66,16 +67,36 @@ field =
 
 starts = field |> Map.keys() |> Enum.filter(fn x -> String.ends_with?(x, "A") end)
 
-Stream.cycle(instructions)
-|> Enum.reduce_while({0, starts}, fn dir, {acc, curs} ->
-  fin = Enum.all?(curs, fn x -> String.ends_with?(x, "Z") end)
+starts =
+  starts
+  |> Enum.to_list()
 
-  news =
-    curs
-    |> Enum.map(fn cur ->
-      field[cur] |> Enum.at(dir)
-    end)
+instructions =
+  instructions
+  |> Enum.with_index()
 
-  if !fin, do: {:cont, {acc + 1, news}}, else: {:halt, {acc, curs}}
+starts
+|> Enum.map(fn start ->
+  Stream.cycle(instructions)
+  |> Stream.with_index()
+  |> Enum.reduce_while({Map.new(), start}, fn {{dir, idx}, globidx}, {acc, cur} ->
+    is_final = String.ends_with?(cur, "Z")
+    has_key = Map.has_key?(acc, {cur, idx})
+
+    nextacc =
+      case has_key do
+        true -> acc
+        false -> Map.put(acc, {cur, idx}, globidx)
+      end
+
+    if is_final and has_key,
+      do: {:halt, Map.get(nextacc, {cur, idx})},
+      else: {:cont, {nextacc, field[cur] |> Enum.at(dir)}}
+  end)
 end)
+|> Enum.reduce(fn a, b -> Math.lcm(a, b) end)
+
+# if Enum.any?(accx, fn x -> x == curx end),
+# do: {:halt, {x, accx, curx}},
+# else: {:cont, {next, cnt + 1, [next | accx]}}
 ```
