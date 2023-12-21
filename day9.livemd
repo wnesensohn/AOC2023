@@ -1,0 +1,54 @@
+# AOC Day 9
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:math, "~> 0.7.0"}
+])
+```
+
+## Part 1
+
+```elixir
+input = Kino.Input.textarea("Input")
+```
+
+```elixir
+text = Kino.Input.read(input) |> String.trim()
+
+histories =
+  text
+  |> String.split("\n")
+  |> Enum.map(fn x ->
+    x |> String.split() |> Enum.map(fn y -> y |> Integer.parse() |> elem(0) end)
+  end)
+
+diffs = fn enum -> Enum.zip_with([enum, Enum.drop(enum, 1)], fn [a, b] -> b - a end) end
+
+defmodule Oasis do
+  def diffs(enum) do
+    Enum.zip_with([enum, Enum.drop(enum, 1)], fn [a, b] -> b - a end)
+  end
+
+  def diffrec(enum) do
+    enum |> IO.inspect()
+
+    if Enum.sum(enum) == 0 do
+      0
+    else
+      diffrec(enum |> diffs) + Enum.at(enum, -1)
+    end
+  end
+end
+
+h =
+  histories
+  |> Enum.map(fn x -> Oasis.diffrec(x) end)
+  |> Enum.sum()
+```
+
+## Part 2
+
+```elixir
+text = Kino.Input.read(input) |> String.trim()
+```
